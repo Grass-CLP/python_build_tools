@@ -1,1 +1,9 @@
-#python_build
+#python_build_tools
+
+本小工具使用cython用于编译python模块，生产pyd(Windows)或so(Linux)
+
+##使用说明
+	python complie_tool.py [module_path]
+	#eg.
+	python complie_tool.py ./demo_project/demo
+
