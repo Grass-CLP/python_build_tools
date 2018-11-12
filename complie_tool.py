@@ -7,8 +7,9 @@
 
 import os
 import shutil
-import subprocess
 import sys
+
+from distutils.core import run_setup
 
 
 def recur_files(path, file_func, suffixes, exclude=None):
@@ -26,7 +27,7 @@ def recur_files(path, file_func, suffixes, exclude=None):
             file_func(os.path.join(root, f))
 
 
-def build(module_old, build_dir="build", temp_dir="temp"):
+def build(module_old, build_dir="build", temp_dir="temp", exclude_file=["__init__.py"]):
     try:
         os.makedirs(build_dir)
     except:
@@ -41,7 +42,7 @@ def build(module_old, build_dir="build", temp_dir="temp"):
     module_path = os.path.join(build_dir, module_name)
     shutil.rmtree(module_path, ignore_errors=True)
     shutil.copytree(module_old, module_path)
-    recur_files(module_path, add_file, 'py', exclude='__init__.py')
+    recur_files(module_path, add_file, 'py', exclude=exclude_file)
 
     setup_script = "from distutils.core import setup\n" \
                    "from Cython.Build import cythonize\n" \
@@ -49,9 +50,10 @@ def build(module_old, build_dir="build", temp_dir="temp"):
     setup_file = os.path.join(module_path, 'setup.py')
     with open(setup_file, 'w') as f:
         f.write(setup_script)
-    subprocess.call(['python', setup_file, 'build_ext', '--build-lib', build_dir, '--build-temp', temp_dir])
-    recur_files(module_path, os.remove, ['c', 'py'], exclude='__init__.py')
-    shutil.rmtree(temp_dir)
+    run_setup(setup_file, ['build_ext', '--build-lib', build_dir, '--build-temp', temp_dir])
+    # subprocess.call(['python', setup_file, 'build_ext', '--build-lib', build_dir, '--build-temp', temp_dir])
+    recur_files(module_path, os.remove, ['c', 'py', 'pyc'], exclude=exclude_file)
+    # shutil.rmtree(temp_dir, ignore_errors=True)
     pass
 
 
